@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Landed Cost Calculator</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#14181f;--mu:#667085;--bd:#e2e6ec;--ac:#0b6e4f;--ac2:#e8f5ef;--bad:#b42318;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1318;--card:#171c23;--tx:#eef1f5;--mu:#9aa4b2;--bd:#2a323d;--ac:#35c28f;--ac2:#12261f;--bad:#ff8a80}}
+:root[data-theme="dark"]{--bg:#0f1318;--card:#171c23;--tx:#eef1f5;--mu:#9aa4b2;--bd:#2a323d;--ac:#35c28f;--ac2:#12261f;--bad:#ff8a80}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.w{max-width:640px;margin:0 auto;padding:18px 14px 40px}
+h1{font-size:21px;margin:0 0 2px}.sub{color:var(--mu);margin:0 0 14px;font-size:13px}
+.c,details{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
+label{display:block;font-size:12px;color:var(--mu);margin:0 0 4px}
+input,select,textarea{width:100%;padding:9px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+.r{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
+.r:last-child,.r3:last-child{margin-bottom:0}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mu);margin:0 0 10px}
+.item{border:1px solid var(--bd);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--bg)}
+.item input,.item select{background:var(--card)}
+.ih{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-weight:600;font-size:13px}
+.ih button{border:0;background:none;color:var(--bad);cursor:pointer;font:inherit;font-size:13px}
+.res{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px;text-align:center}
+.res div{background:var(--ac2);border-radius:8px;padding:8px}.res b{display:block;font-size:15px}.res span{font-size:11px;color:var(--mu)}
+.item{border:0;border-bottom:1px solid var(--bd);border-radius:0;padding:8px 0;margin:0;background:none}.tr,.th{display:grid;grid-template-columns:2.2fr .8fr 1fr 1fr 1.1fr 18px;gap:6px;align-items:center}.th{font-size:11px;color:var(--mu);margin-bottom:4px}.tr input{padding:8px 6px;font-size:14px}.tr b{font-size:12px;text-align:right}.x{border:0;background:none;color:var(--bad);font-size:18px;cursor:pointer;padding:0}.sm{font-size:11px;color:var(--mu);margin:3px 0 0}.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}.ov.on{display:flex}.md{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;max-width:480px;width:100%;max-height:80vh;overflow:auto}.mr{display:flex;gap:8px;align-items:center;padding:7px 0;border-bottom:1px dashed var(--bd)}.mr span{flex:1;font-size:14px;word-break:break-word}.mr button{border:1px solid var(--bd);background:none;color:var(--ac);border-radius:6px;padding:4px 8px;cursor:pointer;font:inherit;font-size:12px}.mr .x{color:var(--bad);border:0;font-size:18px}.add{width:100%;padding:10px;border:1px dashed var(--ac);color:var(--ac);background:none;border-radius:10px;font:inherit;font-weight:600;cursor:pointer}
+summary{cursor:pointer;font-weight:600}details>div{margin-top:12px}
+.big{background:var(--ac2);border-radius:10px;padding:14px;text-align:center;margin-bottom:10px}
+.big .n{font-size:26px;font-weight:700;color:var(--ac)}.big .l{font-size:12px;color:var(--mu)}
+.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--bd);font-size:14px}.row:last-child{border:0}
+.neg{color:var(--bad)!important}.fx{font-size:12px;color:var(--mu);margin-top:6px}.note{font-size:11px;color:var(--mu);margin:10px 0 0}
+</style>
+</head>
+<body>
+<div class="w">
+<h1>Landed Cost Calculator</h1>
+<p class="sub">Multi-product, any country to any country.</p>
+
+<div class="c">
+ <div class="r"><div><label>Buying from</label><select id="from"></select></div>
+ <div><label>Landing in market</label><select id="to"></select></div></div>
+ <div class="r"><div><label>Buy currency</label><select id="bc"></select></div>
+ <div><label>Sell currency</label><select id="sc"></select></div></div>
+ <div class="r"><div><label>Exchange rate (1 buy cur = ? sell cur)</label><input id="fx" type="number" step="any"></div><div></div></div>
+ <div class="fx" id="fxs"></div>
+</div>
+
+<h2>Products</h2>
+<div class="c" style="padding:12px 12px 4px"><div class="th"><span>Product description</span><span>Qty</span><span id="hc">Cost</span><span id="ho">Offer</span><span style="text-align:right">Margin/unit</span><span></span></div><div id="items"></div></div>
+<div class="r"><button class="add" id="add">+ Add product</button><button class="add" id="sp">Saved products</button></div>
+<datalist id="dl"></datalist>
+<div class="ov" id="mod"><div class="md"><h2>Saved products</h2>
+<label>Add models / descriptions (one per line)</label><textarea id="mi" rows="3" placeholder="iPhone 16 Pro 256GB Black"></textarea>
+<button class="add" id="ma" style="margin:8px 0 12px">Save to list</button>
+<div id="ml"></div>
+<button class="add" id="mc" style="margin-top:12px">Close</button>
+<p class="note">Saved in this browser only. Saved names also appear as suggestions when you type in the product table.</p></div></div>
+<div style="height:12px"></div>
+
+<details><summary>Freight & costs (shared across all products)</summary><div>
+ <div class="r"><div><label>Freight, total (buy cur)</label><input id="fr" type="number" step="any" value="0"></div>
+ <div><label>Insurance %</label><input id="ins" type="number" step="any" value="0"></div></div>
+ <div class="r"><div><label>Bank / transfer fee %</label><input id="bank" type="number" step="any" value="0"></div>
+ <div><label>Other costs, total (buy cur)</label><input id="oth" type="number" step="any" value="0"></div></div>
+ <p class="note">Shared costs are split across products by goods value.</p>
+</div></details>
+
+<details><summary>Taxes & duties (landing market)</summary><div>
+ <div class="r"><div><label>VAT / GST</label><select id="vats"><option value="s">Market standard</option><option value="0">Zero-rated / reverse charge</option><option value="c">Custom</option></select></div>
+ <div><label>VAT %</label><input id="vat" type="number" step="any"></div></div>
+ <div class="r"><div><label>VAT treatment</label><select id="rec"><option value="1">Recoverable (B2B)</option><option value="0">Counts as cost</option></select></div><div></div></div>
+ <div class="r"><div><label>Customs duty</label><select id="duts"><option value="0">0% (e.g. phones / ITA)</option><option value="5">5%</option><option value="c">Custom</option></select></div>
+ <div><label>Duty %</label><input id="duty" type="number" step="any" value="0"></div></div>
+ <div class="r"><div><label>Other tax</label><select id="ots"><option value="n">None</option><option value="p">% of goods value</option><option value="u">Fixed per unit (buy cur)</option></select></div>
+ <div><label>Other tax value</label><input id="ot" type="number" step="any" value="0"></div></div>
+ <p class="note">Defaults only. Confirm HS code, duty and VAT with your broker or customs authority.</p>
+</div></details>
+
+<details><summary>Quote details (optional)</summary><div>
+ <div class="r"><div><label>Supplier</label><input id="qf" placeholder="Supplier name"></div><div><label>Customer</label><input id="qt" placeholder="Customer name"></div></div>
+ <div class="r"><div><label>Valid for (days)</label><input id="qv" type="number" value="3"></div><div><label>Terms / notes</label><input id="qn" placeholder="e.g. Ex-works DXB, payment in advance"></div></div>
+ <p class="note">The quote shows cost and offer prices. Landed cost and margin are never included.</p>
+</div></details>
+<div class="r" style="margin-bottom:12px"><button class="add" id="dq">Download quote</button><button class="add" id="dc">Download CSV</button></div>
+<div class="c"><h2>Order summary</h2>
+ <div class="big"><div class="l">Total profit</div><div class="n" id="tp">-</div></div>
+ <div class="row"><span>Total landed cost</span><b id="tl">-</b></div>
+ <div class="row"><span>Total revenue</span><b id="tr">-</b></div>
+ <div class="row"><span>Overall margin</span><b id="om">-</b></div>
+ <div class="row"><span>Units</span><b id="tu">-</b></div>
+</div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const CUR=["USD","EUR","GBP","AED","CNY","HKD","INR","PKR","SAR","TRY","SGD","JPY","CAD","AUD","CHF"];
+// units per 1 USD. Offline fallback only, approximate. AED and SAR are pegged.
+let R={USD:1,EUR:.955,GBP:.79,AED:3.6725,CNY:7.25,HKD:7.8,INR:86,PKR:280,SAR:3.75,TRY:36,SGD:1.35,JPY:155,CAD:1.43,AUD:1.6,CHF:.9},live=false,asOf="";
+const C={"United Arab Emirates":["AED",5],"United Kingdom":["GBP",20],"Germany":["EUR",19],"France":["EUR",20],"Netherlands":["EUR",21],"Italy":["EUR",22],"Spain":["EUR",21],"Belgium":["EUR",21],"Ireland":["EUR",23],"Austria":["EUR",20],"Portugal":["EUR",23],"Greece":["EUR",24],"United States":["USD",0],"Canada":["CAD",5],"Hong Kong":["HKD",0],"China":["CNY",13],"Singapore":["SGD",9],"Japan":["JPY",10],"India":["INR",18],"Pakistan":["PKR",18],"Saudi Arabia":["SAR",15],"Turkey":["TRY",20],"Australia":["AUD",10],"Switzerland":["CHF",8.1],"Other":["USD",0]};
+Object.keys(C).forEach(k=>{$("from").add(new Option(k,k));$("to").add(new Option(k,k))});
+CUR.forEach(c=>{$("bc").add(new Option(c,c));$("sc").add(new Option(c,c))});
+$("from").value="Hong Kong";$("to").value="United Arab Emirates";
+let items=[{n:"",d:"",q:100,b:800,s:860}],fxEdited=false;
+const rate=(a,b)=>R[b]/R[a];
+function syncFx(){if(!fxEdited)$("fx").value=rate($("bc").value,$("sc").value).toFixed(5);
+ $("fxs").textContent=live?"Live rate ("+asOf+", ECB via Frankfurter). Editable.":"Offline estimate, not live. Enter today's rate before relying on results."}
+const SYM={USD:"$",EUR:"€",GBP:"£"};const sym=c=>SYM[c]||c;
+function hdr(){$("hc").textContent="Cost "+sym($("bc").value);$("ho").textContent="Offer "+sym($("sc").value)}
+function render(){
+ $("items").innerHTML=items.map((x,i)=>`<div class="item" data-i="${i}"><div class="tr"><input data-k="n" list="dl" value="${esc(x.n)}" placeholder="Product ${i+1}"><input data-k="q" type="number" value="${x.q}"><input data-k="b" type="number" step="any" value="${x.b}"><input data-k="s" type="number" step="any" value="${x.s}"><b id="m${i}">-</b><button class="x" data-del="${i}" style="${items.length>1?'':'visibility:hidden'}">×</button></div><div class="sm">Landed <span id="l${i}">-</span> /unit · Margin <span id="p${i}">-</span></div></div>`).join("");calc()}
+function renderOld(){
+ $("items").innerHTML=items.map((x,i)=>`<div class="item" data-i="${i}">
+ <div class="ih"><span>Product ${i+1}</span>${items.length>1?'<button data-del="'+i+'">Remove</button>':''}</div>
+ <div class="r"><div><label>Product name</label><input data-k="n" value="${esc(x.n)}" placeholder="e.g. iPhone 16 Pro 256GB"></div>
+ <div><label>Description</label><input data-k="d" value="${esc(x.d)}" placeholder="Color, spec, region"></div></div>
+ <div class="r3"><div><label>Quantity</label><input data-k="q" type="number" value="${x.q}"></div>
+ <div><label>Buy / unit</label><input data-k="b" type="number" step="any" value="${x.b}"></div>
+ <div><label>Sell / unit</label><input data-k="s" type="number" step="any" value="${x.s}"></div></div>
+ <div class="res"><div><b id="l${i}">-</b><span>Landed / unit</span></div><div><b id="m${i}">-</b><span>Margin / unit</span></div><div><b id="p${i}">-</b><span>Margin %</span></div></div></div>`).join("");
+ calc()}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;")}
+$("items").addEventListener("input",e=>{const k=e.target.dataset.k;if(!k)return;
+ const i=+e.target.closest(".item").dataset.i;items[i][k]=(k==="n"||k==="d")?e.target.value:parseFloat(e.target.value)||0;calc()});
+$("items").addEventListener("click",e=>{if(e.target.dataset.del!==undefined){items.splice(+e.target.dataset.del,1);render()}});
+$("add").onclick=()=>{items.push({n:"",d:"",q:1,b:0,s:0});render()};
+function taxDefault(){if($("vats").value==="s")$("vat").value=C[$("to").value][1];else if($("vats").value==="0")$("vat").value=0}
+function setCur(){$("bc").value=C[$("from").value][0];$("sc").value=C[$("to").value][0];fxEdited=false;syncFx();calc()}
+$("from").onchange=setCur;
+$("to").onchange=()=>{$("vats").value="s";taxDefault();setCur()};
+$("bc").onchange=$("sc").onchange=()=>{fxEdited=false;syncFx();calc()};
+$("fx").oninput=()=>{fxEdited=true;calc()};
+$("vats").onchange=()=>{taxDefault();calc()};
+$("vat").oninput=()=>{$("vats").value="c";calc()};
+$("duts").onchange=()=>{if($("duts").value!=="c")$("duty").value=$("duts").value;calc()};
+$("duty").oninput=()=>{$("duts").value="c";calc()};
+const f=(n,c)=>isFinite(n)?n.toLocaleString(undefined,{maximumFractionDigits:2})+" "+c:"-";
+function calc(){hdr();
+ const g=id=>parseFloat($(id).value)||0,sc=$("sc").value,fx=g("fx")||1;
+ const tg=items.reduce((a,x)=>a+x.b*x.q,0)||1;
+ const ot=$("ots").value,rec=$("rec").value==="1";
+ let TL=0,TR=0,TU=0;
+ items.forEach((x,i)=>{
+  const q=Math.max(x.q,1),gd=x.b*x.q,sh=gd/tg;
+  const ins=gd*g("ins")/100,bank=gd*g("bank")/100;
+  const fr=g("fr")*sh,cif=gd+fr+ins;
+  const cu=cif*g("duty")/100,otx=ot==="p"?gd*g("ot")/100:ot==="u"?g("ot")*x.q:0;
+  const vat=(cif+cu+otx)*g("vat")/100;
+  const tot=gd+fr+ins+bank+g("oth")*sh+cu+otx+(rec?0:vat);
+  const lc=tot/q*fx,m=x.s-lc;
+  $("l"+i).textContent=f(lc,sc);
+  const me=$("m"+i);me.textContent=f(m,sc);me.className=m<0?"neg":"";
+  const pe=$("p"+i);pe.textContent=x.s?(m/x.s*100).toFixed(1)+"%":"-";pe.className=m<0?"neg":"";
+  TL+=lc*x.q;TR+=x.s*x.q;TU+=x.q});
+ const P=TR-TL;
+ $("tp").textContent=f(P,sc);$("tp").className="n"+(P<0?" neg":"");
+ $("tl").textContent=f(TL,sc);$("tr").textContent=f(TR,sc);
+ $("om").textContent=TR?(P/TR*100).toFixed(1)+"%":"-";$("tu").textContent=TU.toLocaleString();
+}
+document.querySelectorAll("#fr,#ins,#bank,#oth,#rec,#ots,#ot").forEach(e=>e.addEventListener("input",calc));
+// Live rates: works when hosted on your own site; blocked inside claude.ai
+async function loadFx(){try{
+ const r=await fetch("https://api.frankfurter.app/latest?from=USD&to=EUR,GBP,CNY,HKD,INR,TRY,SGD,JPY,CAD,AUD,CHF");
+ const d=await r.json();
+ if(d&&d.rates&&d.rates.EUR){Object.assign(R,d.rates);live=true;asOf=d.date;syncFx();calc()}
+}catch(e){}}
+let DL=null;
+async function initDl(){try{DL=await claude.use("downloads")}catch(e){DL=null}}
+function saveFile(name,data,mime){
+ if(DL){DL.save({filename:name,data:data}).catch(()=>{});return}
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data],{type:mime}));a.download=name;document.body.appendChild(a);a.click();a.remove()}
+function qrows(){return items.filter(x=>x.s>0&&x.q>0).map((x,i)=>({n:x.n||"Product "+(i+1),q:x.q,b:x.b,s:x.s,t:x.q*x.s}))}
+function stamp(){const d=new Date(),p=n=>String(n).padStart(2,"0");return d.getFullYear()+p(d.getMonth()+1)+p(d.getDate())}
+const nf=n=>n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+$("dq").onclick=()=>{
+ const rows=qrows();if(!rows.length){alert("Add at least one product with quantity and offer price.");return}
+ const bc=$("bc").value,sc=$("sc").value,er=sc==="EUR"?(parseFloat($("fx").value)||1):rate(bc,"EUR"),tot=rows.reduce((a,r)=>a+r.t,0),units=rows.reduce((a,r)=>a+r.q,0);
+ const v=parseFloat($("qv").value)||0,no="Q-"+stamp();
+ const h=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Quote ${no}</title><style>body{font:14px/1.5 system-ui,Arial,sans-serif;color:#14181f;max-width:760px;margin:30px auto;padding:0 18px}h1{font-size:24px;margin:0}.m{color:#667085;font-size:13px}table{width:100%;border-collapse:collapse;margin:20px 0}th,td{padding:9px 8px;border-bottom:1px solid #e2e6ec;text-align:right}th:first-child,td:first-child{text-align:left}th{font-size:12px;text-transform:uppercase;color:#667085}.t td{font-weight:700;border-bottom:0;font-size:16px}.n{margin-top:18px;font-size:13px}</style></head><body><h1>Quotation</h1><div class="m">${no} &middot; ${new Date().toLocaleDateString()}${v?" &middot; Valid for "+v+" days":""}</div><p>${$("qf").value?"<b>Supplier Name:</b> "+esc($("qf").value)+"<br>":""}${$("qt").value?"<b>Customer Name:</b> "+esc($("qt").value):""}</p><table><tr><th>Product description</th><th>Qty</th><th>Cost (${bc})</th><th>Cost (EUR)</th><th>Unit price (${sc})</th><th>Total (${sc})</th></tr>${rows.map(r=>`<tr><td>${esc(r.n)}</td><td>${r.q}</td><td>${nf(r.b)}</td><td>${nf(r.b*er)}</td><td>${nf(r.s)}</td><td>${nf(r.t)}</td></tr>`).join("")}<tr class="t"><td>Total (${units} units)</td><td></td><td></td><td></td><td></td><td>${nf(tot)} ${sc}</td></tr></table>${$("qn").value?"<div class=\"n\"><b>Terms / notes:</b> "+esc($("qn").value)+"</div>":""}<div class="n m">Prices are subject to availability and confirmation. Open this file in a browser and use Print &rarr; Save as PDF if you need a PDF.</div></body></html>`;
+ saveFile("Quote-"+stamp()+".html",h,"text/html")};
+$("dc").onclick=()=>{
+ const rows=qrows();if(!rows.length){alert("Add at least one product with quantity and offer price.");return}
+ const bc=$("bc").value,sc=$("sc").value,er=sc==="EUR"?(parseFloat($("fx").value)||1):rate(bc,"EUR"),q=s=>'"'+String(s).replace(/"/g,'""')+'"';
+ const csv=[["Product description","Qty","Cost "+bc,"Cost EUR","Unit price "+sc,"Total "+sc].map(q).join(",")].concat(rows.map(r=>[q(r.n),r.q,r.b.toFixed(2),(r.b*er).toFixed(2),r.s.toFixed(2),r.t.toFixed(2)].join(","))).join("\n");
+ saveFile("Quote-"+stamp()+".csv",csv,"text/csv")};
+let MODELS=[];
+try{MODELS=JSON.parse(localStorage.getItem("lcc_models")||"[]")}catch(e){}
+function saveModels(){try{localStorage.setItem("lcc_models",JSON.stringify(MODELS))}catch(e){}}
+function drawModels(){
+ $("dl").innerHTML=MODELS.map(m=>`<option value="${esc(m)}">`).join("");
+ $("ml").innerHTML=MODELS.length?MODELS.map((m,i)=>`<div class="mr"><span>${esc(m)}</span><button data-use="${i}">Add to quote</button><button class="x" data-rm="${i}">×</button></div>`).join(""):'<p class="note">No saved products yet.</p>'}
+$("sp").onclick=()=>$("mod").classList.add("on");
+$("mc").onclick=()=>$("mod").classList.remove("on");
+$("ma").onclick=()=>{$("mi").value.split("\n").map(s=>s.trim()).filter(Boolean).forEach(s=>{if(!MODELS.includes(s))MODELS.push(s)});$("mi").value="";saveModels();drawModels()};
+$("ml").onclick=e=>{const d=e.target.dataset;
+ if(d.rm!==undefined){MODELS.splice(+d.rm,1);saveModels();drawModels()}
+ else if(d.use!==undefined){const n=MODELS[+d.use],t=items.find(x=>!x.n);if(t)t.n=n;else items.push({n:n,q:1,b:0,s:0});render()}};
+drawModels();
+initDl();
+taxDefault();setCur();render();loadFx();
+</script>
+</body>
+</html>
